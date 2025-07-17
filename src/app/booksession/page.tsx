@@ -42,11 +42,13 @@ export default function BookSession() {
         setError("Something went wrong. Please try again.");
       }
     } catch (err) {
-      console.error("EmailJS Error:", err);
-      setError("Failed to send email.");
-    } finally {
-      setLoading(false);
-    }
+  if (err instanceof Error) {
+    console.error("EmailJS Error:", err.message, err.stack);
+  } else {
+    console.error("EmailJS Error:", JSON.stringify(err, null, 2));
+  }
+  setError("Failed to send email. Please check console.");
+}
   };
 
   return (
