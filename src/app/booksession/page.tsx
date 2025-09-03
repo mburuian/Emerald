@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import emailjs from "emailjs-com";
 
 export default function BookSession() {
+  const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     message: "",
   });
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (
@@ -32,23 +34,23 @@ export default function BookSession() {
           name: form.name,
           email: form.email,
           message: form.message,
+          phone: form.phone,
         },
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
 
       if (result.status === 200) {
-        setSent(true);
+        // Redirect to payment instructions page
+        router.push("/payment-instructions");
       } else {
         setError("Something went wrong. Please try again.");
       }
     } catch (err) {
-  if (err instanceof Error) {
-    console.error("EmailJS Error:", err.message, err.stack);
-  } else {
-    console.error("EmailJS Error:", JSON.stringify(err, null, 2));
-  }
-  setError("Failed to send email. Please check console.");
-}
+      console.error("EmailJS Error:", err);
+      setError("Failed to send booking email. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,47 +61,52 @@ export default function BookSession() {
           Each session costs <span className="font-semibold">Ksh 1,000</span>
         </p>
 
-        {sent ? (
-          <p className="text-green-600 text-center">✔️ Message sent successfully! We’ll get back to you.</p>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              name="name"
-              type="text"
-              placeholder="Your Full Name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded text-black"
-            />
-            <input
-              name="email"
-              type="email"
-              placeholder="Your Email Address"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded text-black"
-            />
-            <textarea
-              name="message"
-              placeholder="Optional Message (e.g. preferred time)"
-              value={form.message}
-              onChange={handleChange}
-              rows={4}
-              className="w-full p-3 border border-gray-300 rounded text-black"
-              required
-            />
-            {error && <p className="text-red-600">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded"
-            >
-              {loading ? "Sending..." : "Submit Booking"}
-            </button>
-          </form>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            name="name"
+            type="text"
+            placeholder="Your Full Name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded text-black"
+          />
+          <input
+            name="email"
+            type="email"
+            placeholder="Your Email Address"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded text-black"
+          />
+          <input
+            name="phone"
+            type="text"
+            placeholder="Your Phone Number (e.g. 07XX XXX XXX)"
+            value={form.phone}
+            onChange={handleChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded text-black"
+          />
+          <textarea
+            name="message"
+            placeholder="Optional Message (e.g. preferred time)"
+            value={form.message}
+            onChange={handleChange}
+            rows={4}
+            className="w-full p-3 border border-gray-300 rounded text-black"
+            required
+          />
+          {error && <p className="text-red-600">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded"
+          >
+            {loading ? "Sending Booking..." : "Book Session"}
+          </button>
+        </form>
       </div>
     </main>
   );

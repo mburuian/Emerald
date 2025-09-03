@@ -11,13 +11,18 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 // Define BlogPost type
+// Define BlogPost type
 export interface BlogPost {
   id: string;
   title: string;
   content: string;
   createdAt: Timestamp | null;
   likes: number;
+  likedBy?: string[];
+  imageUrl?: string | null;
+  audioUrl?: string | null;
 }
+
 
 // Firebase config
 const firebaseConfig = {
