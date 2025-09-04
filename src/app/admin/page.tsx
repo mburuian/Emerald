@@ -33,18 +33,19 @@ export default function AdminBlogPostPage() {
   }, [router]);
 
   // ✅ Upload file to Supabase
-  const uploadToSupabase = async (file: File) => {
+  const uploadToSupabase = async (file: File): Promise<string | null> => {
     try {
       setUploadProgress(10);
       const fileName = `${Date.now()}-${file.name}`;
 
-      const { data, error } = await supabase.storage
-        .from("blog_media") // ✅ Make sure this bucket exists
+      // Upload file
+      const { error: uploadError } = await supabase.storage
+        .from("blog_media") // ✅ Ensure this bucket exists
         .upload(fileName, file);
 
-      if (error) throw error;
+      if (uploadError) throw uploadError;
 
-      // ✅ Get public URL correctly
+      // Get public URL
       const { data: publicUrlData } = supabase.storage
         .from("blog_media")
         .getPublicUrl(fileName);
@@ -55,12 +56,16 @@ export default function AdminBlogPostPage() {
 
       setUploadProgress(100);
       return publicUrlData.publicUrl;
-    } catch (err) {
-      console.error("Upload error:", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Upload error:", err.message);
+      } else {
+        console.error("Upload error:", err);
+      }
       alert("Failed to upload file. Check Supabase bucket permissions.");
       return null;
     } finally {
-      setTimeout(() => setUploadProgress(0), 1000);
+      setTimeout(() => setUploadProgress(0), 1000); // Reset progress after 1s
     }
   };
 
@@ -101,9 +106,14 @@ export default function AdminBlogPostPage() {
       setImageFile(null);
       setAudioFile(null);
       router.push("/blog");
-    } catch (err: any) {
-      console.error("Blog post failed:", err);
-      alert(`Failed to post blog: ${err?.message || err}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Blog post failed:", err.message);
+        alert(`Failed to post blog: ${err.message}`);
+      } else {
+        console.error("Blog post failed:", err);
+        alert("Failed to post blog due to an unknown error.");
+      }
     } finally {
       setLoading(false);
       setUploadProgress(0);
